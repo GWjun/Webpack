@@ -4,6 +4,8 @@ const path = require("path");
 const webpack = require("webpack");
 const childProcess = require("child_process");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const { CleanWebpackPlugin } = require("clean-webpack-plugin");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 module.exports = {
   mode: "development",
@@ -18,7 +20,12 @@ module.exports = {
     rules: [
       {
         test: /\.css$/,
-        use: ["style-loader", "css-loader"],
+        use: [
+          process.env.NODE_ENV === "production"
+            ? MiniCssExtractPlugin.loader
+            : "style-loader",
+          "css-loader",
+        ],
       },
       {
         test: /\.(png|jpg|jpeg|gif)$/i,
@@ -46,9 +53,8 @@ module.exports = {
       TWOO: JSON.stringify("1+1"),
       "api.domain": JSON.stringify("http://dev.api.domain.com"),
     }),
-
     new HtmlWebpackPlugin({
-      template: "/index.html",
+      template: "./src/index.html",
       templateParameters: {
         env: process.env.NODE_ENV === "development" ? "(개발용)" : "",
       },
@@ -60,5 +66,9 @@ module.exports = {
             }
           : false,
     }),
+    new CleanWebpackPlugin(),
+    ...(process.env.NODE_ENV === "production"
+      ? [new MiniCssExtractPlugin({ filename: `[name].css` })]
+      : []),
   ],
 };
